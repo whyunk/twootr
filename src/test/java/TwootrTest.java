@@ -13,16 +13,7 @@ public class TwootrTest {
     @Test
     public void shouldBeAbleToAuthenticateUser() {
 
-        //유효 사용자의 로그온 메시지 수신
-        String userId = "hyunwoo";
-        String password = "123456";
-
-        //로그온 메서드는 새 엔드포인트 반환
-        Optional<SenderEndPoint> senderEndPoint = twootr.onLogon(userId, password, receiverEndPoint);
-
-        //엔드포인트 유효성을 확인하는 어서션
-        assertTrue(senderEndPoint.isPresent(),"logon failed");
-
+        logon();
     }
 
     @Test
@@ -33,7 +24,7 @@ public class TwootrTest {
 
         Optional<SenderEndPoint> senderEndPoint = twootr.onLogon(userId, password, receiverEndPoint);
 
-        assertFalse(senderEndPoint.isPresent(), "there is no user");
+        assertFalse(senderEndPoint.isPresent());
     }
 
     @Test
@@ -44,6 +35,55 @@ public class TwootrTest {
 
         Optional<SenderEndPoint> senderEndPoint = twootr.onLogon(userId, password, receiverEndPoint);
 
-        assertFalse(senderEndPoint.isPresent(), "wrong password");
+        assertFalse(senderEndPoint.isPresent());
+    }
+
+    @Test
+    public void shouldFollowValidUser() {
+        SenderEndPoint senderEndPoint = logon();
+
+        // other user id
+        String followerId = "woohyun";
+
+        FollowStatus followStatus = senderEndPoint.onFollow(followerId);
+
+        assertEquals(FollowStatus.SUCCESS, followStatus);
+    }
+
+    @Test
+    public void shouldNotDuplicateFollowValidUser() {
+        SenderEndPoint senderEndPoint = logon();
+
+        //other user id that already follow
+        String followerId = "kim";
+
+        FollowStatus followStatus = senderEndPoint.onFollow(followerId);
+
+        assertEquals(FollowStatus.ALREADY_FOLLOWING, followStatus);
+    }
+
+    @Test
+    public void shouldNotInvalidUser() {
+        SenderEndPoint senderEndPoint = logon();
+
+        //other invalid user id
+        String followerId = "invalid user";
+
+        FollowStatus followStatus = senderEndPoint.onFollow(followerId);
+
+        assertEquals(FollowStatus.INVALID_USER, followStatus);
+    }
+
+    private SenderEndPoint logon() {
+        //유효 사용자의 로그온 메시지 수신
+        String userId = "hyunwoo";
+        String password = "123456";
+
+        //로그온 메서드는 새 엔드포인트 반환
+        Optional<SenderEndPoint> senderEndPoint = twootr.onLogon(userId, password, receiverEndPoint);
+
+        //엔드포인트 유효성을 확인하는 어서션
+        assertTrue(senderEndPoint.isPresent(),"logon failed");
+        return senderEndPoint.get();
     }
 }
