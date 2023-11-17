@@ -1,7 +1,39 @@
+import java.util.Objects;
+
 public class SenderEndPoint {
 
-    public FollowStatus onFollow(String userId) {
+    private final User user;
+    private final Twootr twootr;
 
-        return FollowStatus.SUCCESS;
+    public User getUser() {
+        return user;
+    }
+
+    public SenderEndPoint(User user, Twootr twootr) {
+
+        Objects.requireNonNull(user,"user");
+        Objects.requireNonNull(twootr,"twootr");
+
+        this.user = user;
+        this.twootr = twootr;
+    }
+
+    public FollowStatus onFollow(String userIdToFollow) {
+
+        Objects.requireNonNull(userIdToFollow, "userId");
+
+        return twootr.onFollow(user, userIdToFollow);
+    }
+
+    public void onSendTwoot(String id, User user, String content) {
+
+        final String senderId = user.getUserId();
+        final Twoot twoot = new Twoot(id, senderId, content);
+        user.getFollowers().stream()
+                .filter(User::isLoggedOn)
+                .forEach(follower -> follower.receiveTwoot(twoot));
+    }
+
+    public void onLogoff() {
     }
 }

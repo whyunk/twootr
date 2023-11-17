@@ -1,14 +1,15 @@
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class TwootrTest {
 
     private Twootr twootr = new Twootr();
-    private ReceiverEndPoint receiverEndPoint = new ReceiverEndPoint() {};
+    private ReceiverEndPoint receiverEndPoint = mock(ReceiverEndPoint.class);
 
     @Test
     public void shouldBeAbleToAuthenticateUser() {
@@ -74,6 +75,24 @@ public class TwootrTest {
         assertEquals(FollowStatus.INVALID_USER, followStatus);
     }
 
+    @Test
+    public void shouldReceiveTwootsFromFollowedUser() {
+
+        // twoot string id
+        String twootId = "1";
+
+        SenderEndPoint receiveEndPoint = logon();
+        // other user logon
+        SenderEndPoint senderEndPoint = otherLogon();
+
+        receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
+        senderEndPoint.onSendTwoot(twootId,senderEndPoint.getUser(),"hello!");
+
+        verify(receiverEndPoint).onTwoot(new Twoot(twootId, senderEndPoint.getUser().getUserId() ,"hello!"));
+
+    }
+
+
     private SenderEndPoint logon() {
         //유효 사용자의 로그온 메시지 수신
         String userId = "hyunwoo";
@@ -84,6 +103,17 @@ public class TwootrTest {
 
         //엔드포인트 유효성을 확인하는 어서션
         assertTrue(senderEndPoint.isPresent(),"logon failed");
+        return senderEndPoint.get();
+    }
+
+    private SenderEndPoint otherLogon() {
+
+        String otherId = "woohyun";
+        String password = "123456";
+
+        Optional<SenderEndPoint> senderEndPoint = twootr.onLogon(otherId, password, mock(ReceiverEndPoint.class));
+        assertTrue(senderEndPoint.isPresent(), "logon failed");
+
         return senderEndPoint.get();
     }
 }
