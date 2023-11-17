@@ -88,10 +88,25 @@ public class TwootrTest {
         receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
         senderEndPoint.onSendTwoot(twootId,senderEndPoint.getUser(),"hello!");
 
-        verify(receiverEndPoint).onTwoot(new Twoot(twootId, senderEndPoint.getUser().getUserId() ,"hello!"));
+        verify(receiverEndPoint).onTwoot(new Twoot(twootId, senderEndPoint.getUser().getUserId() ,"hello!",Position.INITIAL_POSITION));
 
     }
 
+    @Test
+    public void shouldReceiveReplayOfTwootsAfterLogoff() {
+        final String twootId = "1";
+
+        SenderEndPoint receiveEndPoint = logon();
+        // other user logon
+        SenderEndPoint senderEndPoint = otherLogon();
+
+        receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
+        receiveEndPoint.onLogoff();
+
+        senderEndPoint.onSendTwoot(twootId,senderEndPoint.getUser(),"hello!");
+
+        verify(receiverEndPoint).onTwoot(new Twoot(twootId,senderEndPoint.getUser().getUserId(), "hello!", new Position(0)));
+    }
 
     private SenderEndPoint logon() {
         //유효 사용자의 로그온 메시지 수신

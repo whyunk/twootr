@@ -8,9 +8,12 @@ public class User {
     private Set<User> followers = new HashSet<>();
     private Set<User> following = new HashSet<>();
 
-    public User(String userId, String password) {
+    private Position lastSeenPosition;
+
+    public User(String userId, String password, Position lastSeenPosition) {
         this.userId = userId;
         this.password = password;
+        this.lastSeenPosition = lastSeenPosition;
     }
 
     public String getUserId() {

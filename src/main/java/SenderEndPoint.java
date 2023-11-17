@@ -28,7 +28,7 @@ public class SenderEndPoint {
     public void onSendTwoot(String id, User user, String content) {
 
         final String senderId = user.getUserId();
-        final Twoot twoot = new Twoot(id, senderId, content);
+        final Twoot twoot = new Twoot(id, senderId, content,Position.INITIAL_POSITION);
         user.getFollowers().stream()
                 .filter(User::isLoggedOn)
                 .forEach(follower -> follower.receiveTwoot(twoot));
