@@ -20,6 +20,10 @@ public class User {
         return userId;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     public Set<User> getFollowers() {
         return followers;
     }
