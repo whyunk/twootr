@@ -10,6 +10,7 @@ public class Twootr {
 
         if (USER_DB.containsKey(userId)) {
             if (USER_DB.get(userId).getPassword() == password) {
+                USER_DB.get(userId).onLogon(receiverEndPoint);
                 return Optional.of(new SenderEndPoint(USER_DB.get(userId), this));
             }
         }
@@ -22,8 +23,8 @@ public class Twootr {
         if (USER_DB.containsValue(user) && USER_DB.containsKey(userIdToFollow)) {
             User my = USER_DB.get(user.getUserId());
             User follower = USER_DB.get(userIdToFollow);
-            if (my.getFollowers().add(follower)) {
-                follower.getFollowing().add(my);
+            if (my.getFollowing().add(follower)) {
+                follower.getFollowers().add(my);
                 return FollowStatus.SUCCESS;
             } else {
                 return FollowStatus.ALREADY_FOLLOWING;

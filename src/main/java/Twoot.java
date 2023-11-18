@@ -11,4 +11,17 @@ public class Twoot {
         this.content = content;
         this.position = position;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Twoot twoot = (Twoot) o;
+        return id.equals(twoot.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

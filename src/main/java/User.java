@@ -7,7 +7,7 @@ public class User {
     private String password;
     private Set<User> followers = new HashSet<>();
     private Set<User> following = new HashSet<>();
-
+    private ReceiverEndPoint receiverEndPoint;
     private Position lastSeenPosition;
 
     public User(String userId, String password, Position lastSeenPosition) {
@@ -33,10 +33,18 @@ public class User {
     }
 
     public boolean isLoggedOn() {
-        return true;
+        return receiverEndPoint != null;
+    }
+
+    public void onLogon(ReceiverEndPoint receiverEndPoint) {
+        this.receiverEndPoint = receiverEndPoint;
+    }
+
+    public void onLogOff() {
+        this.receiverEndPoint = null;
     }
 
     public void receiveTwoot(Twoot twoot) {
-
+        receiverEndPoint.onTwoot(twoot);
     }
 }

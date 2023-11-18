@@ -95,7 +95,7 @@ public class TwootrTest {
         SenderEndPoint senderEndPoint = otherLogon();
 
         receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
-        senderEndPoint.onSendTwoot(twootId,senderEndPoint.getUser(),"hello!");
+        senderEndPoint.onSendTwoot(twootId, senderEndPoint.getUser(),"hello!");
 
         verify(receiverEndPoint).onTwoot(new Twoot(twootId, senderEndPoint.getUser().getUserId() ,"hello!",Position.INITIAL_POSITION));
 

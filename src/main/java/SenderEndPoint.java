@@ -35,5 +35,6 @@ public class SenderEndPoint {
     }
 
     public void onLogoff() {
+        user.onLogOff();
     }
 }
