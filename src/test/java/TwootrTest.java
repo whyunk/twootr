@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -11,6 +12,12 @@ public class TwootrTest {
     private Twootr twootr = new Twootr();
     private ReceiverEndPoint receiverEndPoint = mock(ReceiverEndPoint.class);
 
+    @BeforeEach
+    public void setUp() {
+        Twootr.USER_DB.clear();
+        Twootr.USER_DB.put("hyunwoo", new User("hyunwoo", "123456", Position.INITIAL_POSITION));
+        Twootr.USER_DB.put("woohyun", new User("woohyun", "123456", Position.INITIAL_POSITION));
+    }
     @Test
     public void shouldBeAbleToAuthenticateUser() {
 
@@ -56,11 +63,13 @@ public class TwootrTest {
         SenderEndPoint senderEndPoint = logon();
 
         //other user id that already follow
-        String followerId = "kim";
+        String followerId = "woohyun";
 
-        FollowStatus followStatus = senderEndPoint.onFollow(followerId);
+        FollowStatus firstFollow = senderEndPoint.onFollow(followerId);
+        FollowStatus secondFollow = senderEndPoint.onFollow(followerId);
 
-        assertEquals(FollowStatus.ALREADY_FOLLOWING, followStatus);
+        assertEquals(FollowStatus.SUCCESS, firstFollow);
+        assertEquals(FollowStatus.ALREADY_FOLLOWING, secondFollow);
     }
 
     @Test

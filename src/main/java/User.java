@@ -28,6 +28,10 @@ public class User {
         return followers;
     }
 
+    public Set<User> getFollowing() {
+        return following;
+    }
+
     public boolean isLoggedOn() {
         return true;
     }
