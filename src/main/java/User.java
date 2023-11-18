@@ -32,6 +32,10 @@ public class User {
         return following;
     }
 
+    public Position getLastSeenPosition() {
+        return lastSeenPosition;
+    }
+
     public boolean isLoggedOn() {
         return receiverEndPoint != null;
     }
@@ -45,6 +49,9 @@ public class User {
     }
 
     public void receiveTwoot(Twoot twoot) {
-        receiverEndPoint.onTwoot(twoot);
+        if (isLoggedOn()) {
+            receiverEndPoint.onTwoot(twoot);
+            this.lastSeenPosition = twoot.getPosition();
+        }
     }
 }

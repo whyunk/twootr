@@ -4,16 +4,16 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class TwootrTest {
 
-    private Twootr twootr = new Twootr();
+    private Twootr twootr;
     private ReceiverEndPoint receiverEndPoint = mock(ReceiverEndPoint.class);
 
     @BeforeEach
     public void setUp() {
+        twootr = new Twootr();
         Twootr.USER_DB.clear();
         Twootr.USER_DB.put("hyunwoo", new User("hyunwoo", "123456", Position.INITIAL_POSITION));
         Twootr.USER_DB.put("woohyun", new User("woohyun", "123456", Position.INITIAL_POSITION));
@@ -95,14 +95,14 @@ public class TwootrTest {
         SenderEndPoint senderEndPoint = otherLogon();
 
         receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
-        senderEndPoint.onSendTwoot(twootId, senderEndPoint.getUser(),"hello!");
+        senderEndPoint.onSendTwoot(twootId, "hello!");
 
-        verify(receiverEndPoint).onTwoot(new Twoot(twootId, senderEndPoint.getUser().getUserId() ,"hello!",Position.INITIAL_POSITION));
+        verify(receiverEndPoint).onTwoot(new Twoot(twootId, senderEndPoint.getUser().getUserId() ,"hello!", new Position(0)));
 
     }
 
     @Test
-    public void shouldReceiveReplayOfTwootsAfterLogoff() {
+    public void shouldNotReceiveTwootsAfterLogoff() {
         final String twootId = "1";
 
         SenderEndPoint receiveEndPoint = logon();
@@ -110,9 +110,26 @@ public class TwootrTest {
         SenderEndPoint senderEndPoint = otherLogon();
 
         receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
-        receiveEndPoint.onLogoff();
+        receiveEndPoint.onLogOff();
 
-        senderEndPoint.onSendTwoot(twootId,senderEndPoint.getUser(),"hello!");
+        senderEndPoint.onSendTwoot(twootId, "hello!");
+
+        verify(receiverEndPoint, never()).onTwoot(new Twoot(twootId,senderEndPoint.getUser().getUserId(), "hello!", new Position(0)));
+    }
+
+    @Test
+    public void shouldReceiveReplayOfTwootsAfterLogOff() {
+        final String twootId = "1";
+
+        SenderEndPoint receiveEndPoint = logon();
+        // other user logon
+        SenderEndPoint senderEndPoint = otherLogon();
+
+        receiveEndPoint.onFollow(senderEndPoint.getUser().getUserId());
+        receiveEndPoint.onLogOff();
+
+        senderEndPoint.onSendTwoot(twootId, "hello!");
+        logon();
 
         verify(receiverEndPoint).onTwoot(new Twoot(twootId,senderEndPoint.getUser().getUserId(), "hello!", new Position(0)));
     }

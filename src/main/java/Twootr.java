@@ -1,16 +1,26 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Twootr {
 
     static final Map<String, User> USER_DB = new HashMap<>();
+    static final List<Twoot> TWOOTS = new ArrayList<>();
+    private Position currentPosition = Position.INITIAL_POSITION;
 
     public Optional<SenderEndPoint> onLogon(String userId, String password, ReceiverEndPoint receiverEndPoint) {
 
         if (USER_DB.containsKey(userId)) {
             if (USER_DB.get(userId).getPassword() == password) {
-                USER_DB.get(userId).onLogon(receiverEndPoint);
+                User user = USER_DB.get(userId);
+                user.onLogon(receiverEndPoint);
+
+                List<Twoot> notReceiveTwoots = TWOOTS.stream().filter(twoot -> user.getFollowing().contains(USER_DB.get(twoot.getSenderId())))
+                        .filter(twoot -> user.getLastSeenPosition().getValue() < twoot.getPosition().getValue())
+                        .collect(Collectors.toList());
+                for (Twoot twoot : notReceiveTwoots) {
+                    user.receiveTwoot(twoot);
+                }
+
                 return Optional.of(new SenderEndPoint(USER_DB.get(userId), this));
             }
         }
@@ -31,5 +41,18 @@ public class Twootr {
             }
         }
         return FollowStatus.INVALID_USER;
+    }
+
+    public void onSendTwoot(String id, User user, String content) {
+
+        final String senderId = user.getUserId();
+
+        currentPosition = currentPosition.next();
+        final Twoot twoot = new Twoot(id, senderId, content, currentPosition);
+        TWOOTS.add(twoot);
+
+        user.getFollowers().stream()
+                .filter(User::isLoggedOn)
+                .forEach(follower -> follower.receiveTwoot(twoot));
     }
 }
