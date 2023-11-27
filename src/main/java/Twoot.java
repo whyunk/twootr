@@ -26,6 +26,10 @@ public class Twoot {
         return senderId;
     }
 
+    public String getContent() {
+        return content;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

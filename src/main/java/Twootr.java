@@ -66,4 +66,18 @@ public class Twootr {
 
         return userRepository.add(user) ? RegistrationStatus.SUCCESS : RegistrationStatus.DUPLICATE;
     }
+
+    DeleteStatus onDeleteTwoot(final String userId, final String id) {
+        return twootRepository
+                .get(id)
+                .map(twoot ->
+                {
+                    var canDeleteTwoot = twoot.getSenderId().equals(userId);
+                    if (canDeleteTwoot) {
+                        twootRepository.delete(twoot);
+                    }
+                    return canDeleteTwoot ? DeleteStatus.SUCCESS : DeleteStatus.NOT_YOUR_TWOOT;
+                })
+                .orElse(DeleteStatus.UNKNOWN_TWOOT);
+    }
 }

@@ -25,11 +25,16 @@ public class SenderEndPoint {
         return twootr.onFollow(user, userIdToFollow);
     }
 
-    public void onSendTwoot(String id, String content) {
-        twootr.onSendTwoot(id, this.user, content);
+    public Position onSendTwoot(String id, String content) {
+
+        return twootr.onSendTwoot(id, this.user, content);
     }
 
     public void onLogOff() {
         user.onLogOff();
+    }
+
+    public DeleteStatus onDeleteTwoot(final String id) {
+        return twootr.onDeleteTwoot(user.getUserId(), id);
     }
 }
