@@ -1,58 +1,60 @@
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
 
 public class Twootr {
 
-    static final Map<String, User> USER_DB = new HashMap<>();
-    static final List<Twoot> TWOOTS = new ArrayList<>();
-    private Position currentPosition = Position.INITIAL_POSITION;
+    private final TwootRepository twootRepository;
+    private final UserRepository userRepository;
+
+    public Twootr(TwootRepository twootRepository, UserRepository userRepository) {
+        this.twootRepository = twootRepository;
+        this.userRepository = userRepository;   }
 
     public Optional<SenderEndPoint> onLogon(String userId, String password, ReceiverEndPoint receiverEndPoint) {
 
-        if (USER_DB.containsKey(userId)) {
-            if (USER_DB.get(userId).getPassword() == password) {
-                User user = USER_DB.get(userId);
-                user.onLogon(receiverEndPoint);
+        Objects.requireNonNull(userId, "userId");
+        Objects.requireNonNull(password, "password");
 
-                List<Twoot> notReceiveTwoots = TWOOTS.stream().filter(twoot -> user.getFollowing().contains(USER_DB.get(twoot.getSenderId())))
-                        .filter(twoot -> user.getLastSeenPosition().getValue() < twoot.getPosition().getValue())
-                        .collect(Collectors.toList());
-                for (Twoot twoot : notReceiveTwoots) {
-                    user.receiveTwoot(twoot);
-                }
+        Optional<User> authenticatedUser = userRepository
+                .get(userId)
+                .filter(userOfSameId -> {
+                    byte[] hashedPassword = KeyGenerator.hash(password, userOfSameId.getSalt());
+                    return Arrays.equals(hashedPassword, userOfSameId.getPassword());
+                });
 
-                return Optional.of(new SenderEndPoint(USER_DB.get(userId), this));
-            }
-        }
-        return Optional.empty();
+        authenticatedUser.ifPresent(user ->
+        {
+            user.onLogon(receiverEndPoint);
+            twootRepository.query(
+                    new TwootQuery()
+                            .inUsers(user.getFollowing())
+                            .lastSeenPosition(user.getLastSeenPosition()) , user::receiveTwoot);
+            userRepository.update(user);
+        });
+
+        return authenticatedUser.map(user -> new SenderEndPoint(user,this));
     }
 
     public FollowStatus onFollow(User user, String userIdToFollow) {
 
-        //유저랑 팔로우유저를 맵에서 찾고 유저는 팔로잉 추가 팔로유저는 팔로잉 추가
-        if (USER_DB.containsValue(user) && USER_DB.containsKey(userIdToFollow)) {
-            User my = USER_DB.get(user.getUserId());
-            User follower = USER_DB.get(userIdToFollow);
-            if (my.getFollowing().add(follower)) {
-                follower.getFollowers().add(my);
-                return FollowStatus.SUCCESS;
-            } else {
-                return FollowStatus.ALREADY_FOLLOWING;
-            }
-        }
-        return FollowStatus.INVALID_USER;
+        return userRepository.get(userIdToFollow)
+                .map(userToFollow -> userRepository.follow(user,userToFollow))
+                .orElse(FollowStatus.INVALID_USER);
+
     }
 
-    public void onSendTwoot(String id, User user, String content) {
+    public Position onSendTwoot(String id, User user, String content) {
 
-        final String senderId = user.getUserId();
+        String senderId = user.getUserId();
+        Twoot twoot = twootRepository.add(id, senderId, content);
 
-        currentPosition = currentPosition.next();
-        final Twoot twoot = new Twoot(id, senderId, content, currentPosition);
-        TWOOTS.add(twoot);
+        user.getFollowers().stream().filter(User::isLoggedOn).forEach(follower -> {
+            follower.receiveTwoot(twoot);
+            userRepository.update(follower);
+        });
 
-        user.getFollowers().stream()
-                .filter(User::isLoggedOn)
-                .forEach(follower -> follower.receiveTwoot(twoot));
+        return twoot.getPosition();
+
     }
 }

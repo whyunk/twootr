@@ -25,7 +25,7 @@ public class TwootQuery {
         return inUsers(new HashSet<>(Arrays.asList(inUsers)));
     }
 
-    public TwootQuery lstSeenPosition(final Position lastSeenPosition) {
+    public TwootQuery lastSeenPosition(final Position lastSeenPosition) {
         this.lastSeenPosition = lastSeenPosition;
 
         return this;

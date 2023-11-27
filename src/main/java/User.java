@@ -4,15 +4,17 @@ import java.util.Set;
 public class User {
 
     private String userId;
-    private String password;
+    private byte[] password;
+    private byte[] salt;
     private Set<User> followers = new HashSet<>();
-    private Set<User> following = new HashSet<>();
+    private Set<String> following = new HashSet<>();
     private ReceiverEndPoint receiverEndPoint;
     private Position lastSeenPosition;
 
-    public User(String userId, String password, Position lastSeenPosition) {
+    public User(String userId, byte[] password, byte[] salt, Position lastSeenPosition) {
         this.userId = userId;
         this.password = password;
+        this.salt = salt;
         this.lastSeenPosition = lastSeenPosition;
     }
 
@@ -20,15 +22,19 @@ public class User {
         return userId;
     }
 
-    public String getPassword() {
+    public byte[] getPassword() {
         return password;
+    }
+
+    public byte[] getSalt() {
+        return salt;
     }
 
     public Set<User> getFollowers() {
         return followers;
     }
 
-    public Set<User> getFollowing() {
+    public Set<String> getFollowing() {
         return following;
     }
 
@@ -38,6 +44,15 @@ public class User {
 
     public boolean isLoggedOn() {
         return receiverEndPoint != null;
+    }
+
+    public FollowStatus addFollower(User user) {
+        if (followers.add(user)) {
+            user.following.add(userId);
+            return FollowStatus.SUCCESS;
+        } else {
+            return FollowStatus.ALREADY_FOLLOWING;
+        }
     }
 
     public void onLogon(ReceiverEndPoint receiverEndPoint) {

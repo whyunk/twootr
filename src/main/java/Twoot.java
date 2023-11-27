@@ -14,6 +14,10 @@ public class Twoot {
         this.position = position;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public Position getPosition() {
         return position;
     }
@@ -43,5 +47,9 @@ public class Twoot {
                 ", content='" + content + '\'' +
                 ", position=" + position +
                 '}';
+    }
+
+    public boolean isAfter(Position lastSeenPosition) {
+        return this.position.getValue() > lastSeenPosition.getValue();
     }
 }
