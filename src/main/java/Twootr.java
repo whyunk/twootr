@@ -57,4 +57,13 @@ public class Twootr {
         return twoot.getPosition();
 
     }
+
+    public RegistrationStatus onRegisterUser(String userId, String password) {
+
+        byte[] salt = KeyGenerator.newSalt();
+        byte[] hashedPassword = KeyGenerator.hash(password, salt);
+        User user = new User(userId, hashedPassword, salt, Position.INITIAL_POSITION);
+
+        return userRepository.add(user) ? RegistrationStatus.SUCCESS : RegistrationStatus.DUPLICATE;
+    }
 }
