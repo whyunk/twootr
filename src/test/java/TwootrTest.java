@@ -10,13 +10,19 @@ public class TwootrTest {
 
     private Twootr twootr;
     private ReceiverEndPoint receiverEndPoint = mock(ReceiverEndPoint.class);
+    private UserRepository userRepository = new InMemoryUserRepository();
+    private TwootRepository twootRepository = new InMemoryTwootRepository();
 
     @BeforeEach
     public void setUp() {
-        twootr = new Twootr();
-        Twootr.USER_DB.clear();
-        Twootr.USER_DB.put("hyunwoo", new User("hyunwoo", "123456", Position.INITIAL_POSITION));
-        Twootr.USER_DB.put("woohyun", new User("woohyun", "123456", Position.INITIAL_POSITION));
+        twootr = new Twootr(twootRepository,userRepository);
+        userRepository.clear();
+        twootRepository.clear();
+        byte[] salt1 = KeyGenerator.newSalt();
+        byte[] salt2 = KeyGenerator.newSalt();
+        userRepository.add(new User("hyunwoo", KeyGenerator.hash("123456", salt1), salt1 , Position.INITIAL_POSITION));
+        userRepository.add(new User("woohyun", KeyGenerator.hash("123456", salt2), salt2 , Position.INITIAL_POSITION));
+
     }
     @Test
     public void shouldBeAbleToAuthenticateUser() {
